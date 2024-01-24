@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "CommonJS",
+    "allowJs": false,
+    "declaration": true,
+    "declarationMap": true,
+    "lib": ["dom", "es6"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "typeRoots": ["node_modules/@types"],
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "sourceMap": true,
+    "rootDir": "src",
+    "outDir": "dist/esm",
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true
+  },
+  "include": ["src"]
+}
