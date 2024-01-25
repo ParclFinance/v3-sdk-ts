@@ -3,6 +3,9 @@
 <h1>v3-sdk</h1>
 </div>
 
+[![npm version](https://img.shields.io/npm/v/@parcl-oss/v3-sdk/latest.svg)](https://www.npmjs.com/package/@parcl-oss/v3-sdk/v/latest)
+[![npm bundle size (scoped version)](https://img.shields.io/bundlephobia/minzip/@parcl-oss/v3-sdk/latest.svg)](https://bundlephobia.com/result?p=@parcl-oss/v3-sdk@latest)
+
 Parcl-v3 client library and SDK in TypeScript.
 
 ## Alpha Software
