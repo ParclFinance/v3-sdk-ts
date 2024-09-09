@@ -78,10 +78,15 @@ export type LiquidateParams = {
   isFullLiquidation: boolean;
 };
 
-export type CreateLpAccountAccounts = {
+export type UpgradeLpAccountAccounts = {
   exchange: Address;
   lpAccount: Address;
+  lpPosition: Address;
   owner: Address;
+};
+
+export type UpgradeLpAccountParams = {
+  lpPositionId: U64;
 };
 
 export type CloseLpAccountAccounts = {
@@ -90,40 +95,37 @@ export type CloseLpAccountAccounts = {
   owner: Address;
 };
 
-export type AddLiquidityAccounts = {
+export type AddLiquidityV2Accounts = {
   exchange: Address;
-  lpAccount: Address;
+  lpPosition: Address;
   collateralVault: Address;
-  signerTokenAccount: Address;
-  signer: Address;
+  ownerTokenAccount: Address;
+  owner: Address;
 };
 
-export type AddLiquidityParams = {
+export type AddLiquidityV2Params = {
   liquidity: U64;
+  lpPositionId: U64;
 };
 
-export type RemoveLiquidityAccounts = {
+export type RemoveLiquidityV2Accounts = {
   exchange: Address;
-  lpAccount: Address;
+  lpPosition: Address;
   settlementRequest: Address;
   ownerTokenAccount: Address;
   owner: Address;
 };
 
-export type RemoveLiquidityParams = {
-  shares: U64;
+export type RemoveLiquidityV2Params = {
   settlementRequestId: U64;
+  shares: U64;
   keeperTip: U64;
 };
 
-export type SetLpAccountDelegateAccounts = {
+export type CloseLpPositionAccounts = {
   exchange: Address;
-  lpAccount: Address;
+  lpPosition: Address;
   owner: Address;
-};
-
-export type SetLpAccountDelegateParams = {
-  delegate: Address;
 };
 
 export type ProcessSettlementRequestsAccounts = {

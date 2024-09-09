@@ -15,6 +15,7 @@ import {
   marketSerializer,
   marginAccountSerializer,
   lpAccountSerializer,
+  lpPositionSerializer,
   settlementRequestSerializer,
 } from "./types/accounts/serializers";
 import {
@@ -23,6 +24,7 @@ import {
   MarginAccount,
   SettlementRequest,
   LpAccount,
+  LpPosition,
   Address,
   ProgramAccount,
 } from "./types";
@@ -30,6 +32,7 @@ import {
   PARCL_V3_PROGRAM_ID,
   EXCHANGE_DISCRIMINATOR,
   LP_ACCOUNT_DISCRIMINATOR,
+  LP_POSITION_DISCRIMINATOR,
   MARGIN_ACCOUNT_DISCRIMINATOR,
   MARKET_DISCRIMINATOR,
   SETTLEMENT_REQUEST_DISCRIMINATOR,
@@ -61,6 +64,13 @@ export class ParclV3AccountFetcher {
     return rawAccount === undefined
       ? undefined
       : deserializeAccount(rawAccount, lpAccountSerializer);
+  }
+
+  async getLpPosition(address: Address): Promise<LpPosition | undefined> {
+    const rawAccount = await this.getAccountAndRemoveDiscriminator(address);
+    return rawAccount === undefined
+      ? undefined
+      : deserializeAccount(rawAccount, lpPositionSerializer);
   }
 
   async getMarginAccount(address: Address): Promise<MarginAccount | undefined> {
@@ -108,6 +118,18 @@ export class ParclV3AccountFetcher {
         ? undefined
         : {
             account: deserializeAccount(rawAccount, lpAccountSerializer),
+            address: rawAccount.publicKey,
+          }
+    );
+  }
+
+  async getLpPositions(addresses: Address[]): Promise<(ProgramAccount<LpPosition> | undefined)[]> {
+    const rawAccounts = await this.getMultipleAccountsAndRemoveDiscriminators(addresses);
+    return rawAccounts.map((rawAccount) =>
+      rawAccount === undefined
+        ? undefined
+        : {
+            account: deserializeAccount(rawAccount, lpPositionSerializer),
             address: rawAccount.publicKey,
           }
     );
@@ -191,6 +213,21 @@ export class ParclV3AccountFetcher {
     return rawAccounts.map((rawAccount) => ({
       address: rawAccount.publicKey,
       account: deserializeAccount(rawAccount, lpAccountSerializer),
+    }));
+  }
+
+  async getAllLpPositions(): Promise<ProgramAccount<LpPosition>[]> {
+    const rawAccounts = await this.getProgramAccountsAndRemoveDiscriminators([
+      {
+        memcmp: {
+          offset: 0,
+          bytes: new Uint8Array(LP_POSITION_DISCRIMINATOR),
+        },
+      },
+    ]);
+    return rawAccounts.map((rawAccount) => ({
+      address: rawAccount.publicKey,
+      account: deserializeAccount(rawAccount, lpPositionSerializer),
     }));
   }
 
