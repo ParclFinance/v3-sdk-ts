@@ -15,14 +15,14 @@ import {
   LiquidateAccounts,
   LiquidateParams,
   ProcessSettlementRequestsAccounts,
-  CreateLpAccountAccounts,
   CloseLpAccountAccounts,
-  AddLiquidityAccounts,
-  AddLiquidityParams,
-  RemoveLiquidityAccounts,
-  RemoveLiquidityParams,
-  SetLpAccountDelegateAccounts,
-  SetLpAccountDelegateParams,
+  AddLiquidityV2Accounts,
+  AddLiquidityV2Params,
+  RemoveLiquidityV2Accounts,
+  RemoveLiquidityV2Params,
+  CloseLpPositionAccounts,
+  UpgradeLpAccountAccounts,
+  UpgradeLpAccountParams,
 } from "./types";
 import {
   translateAddress,
@@ -76,31 +76,30 @@ export class ParclV3TransactionBuilder {
 
   // LP ACCOUNT //
 
-  createLpAccount(accounts: CreateLpAccountAccounts): this {
-    const ix = this.ix.createLpAccount(accounts);
-    return this.instruction(ix);
-  }
-
   closeLpAccount(accounts: CloseLpAccountAccounts): this {
     const ix = this.ix.closeLpAccount(accounts);
     return this.instruction(ix);
   }
 
-  addLiquidity(accounts: AddLiquidityAccounts, params: AddLiquidityParams): this {
-    const ix = this.ix.addLiquidity(accounts, params);
+  upgradeLpAccount(accounts: UpgradeLpAccountAccounts, params: UpgradeLpAccountParams): this {
+    const ix = this.ix.upgradeLpAccount(accounts, params);
     return this.instruction(ix);
   }
 
-  removeLiquidity(accounts: RemoveLiquidityAccounts, params: RemoveLiquidityParams): this {
-    const ix = this.ix.removeLiquidity(accounts, params);
+  // LP POSITION //
+
+  addLiquidityV2(accounts: AddLiquidityV2Accounts, params: AddLiquidityV2Params): this {
+    const ix = this.ix.addLiquidityV2(accounts, params);
     return this.instruction(ix);
   }
 
-  setLpAccountDelegate(
-    accounts: SetLpAccountDelegateAccounts,
-    params: SetLpAccountDelegateParams
-  ): this {
-    const ix = this.ix.setLpAccountDelegate(accounts, params);
+  removeLiquidityV2(accounts: RemoveLiquidityV2Accounts, params: RemoveLiquidityV2Params): this {
+    const ix = this.ix.removeLiquidityV2(accounts, params);
+    return this.instruction(ix);
+  }
+
+  closeLpPosition(accounts: CloseLpPositionAccounts): this {
+    const ix = this.ix.closeLpPosition(accounts);
     return this.instruction(ix);
   }
 

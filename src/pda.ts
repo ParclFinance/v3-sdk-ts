@@ -8,6 +8,7 @@ import { translateAddress } from "./utils";
 export const EXCHANGE_PREFIX = "exchange";
 export const COLLATERAL_VAULT_PREFIX = "collateral_vault";
 export const LP_ACCOUNT_PREFIX = "lp_account";
+export const LP_POSITION_PREFIX = "lp_position";
 export const MARGIN_ACCOUNT_PREFIX = "margin_account";
 export const MARKET_PREFIX = "market";
 export const SETTLEMENT_REQUEST_PREFIX = "settlement_request";
@@ -61,6 +62,26 @@ export function getLpAccountPda(exchange: Address, owner: Address): [PublicKey, 
       Buffer.from(LP_ACCOUNT_PREFIX),
       translateAddress(exchange).toBytes(),
       translateAddress(owner).toBytes(),
+    ],
+    new PublicKey(PARCL_V3_PROGRAM_ID)
+  );
+}
+
+export function getLpPositionPda(
+  exchange: Address,
+  owner: Address,
+  _id: number
+): [PublicKey, number] {
+  const id = new BN(_id.toString());
+  if (id.ltn(0) || id.gt(U64_MAX)) {
+    throw new Error("Lp position id must be 64-bit unsigned int");
+  }
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from(LP_POSITION_PREFIX),
+      translateAddress(exchange).toBytes(),
+      translateAddress(owner).toBytes(),
+      id.toArrayLike(Buffer, "le", 8),
     ],
     new PublicKey(PARCL_V3_PROGRAM_ID)
   );

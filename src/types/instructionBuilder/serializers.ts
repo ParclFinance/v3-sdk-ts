@@ -16,9 +16,9 @@ import {
   ModifyPositionParams,
   SetMarginAccountDelegateParams,
   LiquidateParams,
-  AddLiquidityParams,
-  RemoveLiquidityParams,
-  SetLpAccountDelegateParams,
+  AddLiquidityV2Params,
+  RemoveLiquidityV2Params,
+  UpgradeLpAccountParams,
 } from "./index";
 
 export const createMarginAccountParamsSerializer: Serializer<CreateMarginAccountParams> = struct([
@@ -48,15 +48,17 @@ export const liquidateParamsSerializer: Serializer<OptionOrNullable<LiquidatePar
   struct([["isFullLiquidation", bool()]])
 );
 
-export const addLiquidityParamsSerializer: Serializer<AddLiquidityParams> = struct([
+export const addLiquidityV2ParamsSerializer: Serializer<AddLiquidityV2Params> = struct([
   ["liquidity", u64()],
+  ["lpPositionId", u64()],
 ]);
 
-export const removeLiquidityParamsSerializer: Serializer<RemoveLiquidityParams> = struct([
+export const removeLiquidityV2ParamsSerializer: Serializer<RemoveLiquidityV2Params> = struct([
   ["settlementRequestId", u64()],
   ["shares", u64()],
   ["keeperTip", u64()],
 ]);
-export const setLpAccountDelegateParamsSerializer: Serializer<SetLpAccountDelegateParams> = struct([
-  ["delegate", publicKey()],
+
+export const upgradeLpAccountParamsSerializer: Serializer<UpgradeLpAccountParams> = struct([
+  ["lpPositionId", u64()],
 ]);

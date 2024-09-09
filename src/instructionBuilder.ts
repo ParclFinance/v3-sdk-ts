@@ -19,19 +19,19 @@ import {
   SetMarginAccountDelegateParams,
   LiquidateAccounts,
   LiquidateParams,
-  CreateLpAccountAccounts,
+  UpgradeLpAccountAccounts,
+  UpgradeLpAccountParams,
   CloseLpAccountAccounts,
-  AddLiquidityAccounts,
-  AddLiquidityParams,
-  RemoveLiquidityAccounts,
-  RemoveLiquidityParams,
-  SetLpAccountDelegateAccounts,
-  SetLpAccountDelegateParams,
+  AddLiquidityV2Accounts,
+  AddLiquidityV2Params,
+  RemoveLiquidityV2Accounts,
+  RemoveLiquidityV2Params,
+  CloseLpPositionAccounts,
   ProcessSettlementRequestsAccounts,
   RefreshLockedOiAccountingAccounts,
-  addLiquidityParamsSerializer,
-  removeLiquidityParamsSerializer,
-  setLpAccountDelegateParamsSerializer,
+  addLiquidityV2ParamsSerializer,
+  removeLiquidityV2ParamsSerializer,
+  upgradeLpAccountParamsSerializer,
   setMarginAccountDelegateParamsSerializer,
   createMarginAccountParamsSerializer,
   depositMarginParamsSerializer,
@@ -44,18 +44,20 @@ import { translateAddress, encodeInstructionData } from "./utils";
 export class ParclV3InstructionBuilder {
   // LP ACCOUNT //
 
-  createLpAccount(accounts: CreateLpAccountAccounts): TransactionInstruction {
+  upgradeLpAccount(
+    accounts: UpgradeLpAccountAccounts,
+    params: UpgradeLpAccountParams
+  ): TransactionInstruction {
     return new TransactionInstruction({
       keys: [
         { pubkey: translateAddress(accounts.exchange), isSigner: false, isWritable: false },
         { pubkey: translateAddress(accounts.lpAccount), isSigner: false, isWritable: true },
+        { pubkey: translateAddress(accounts.lpPosition), isSigner: false, isWritable: true },
         { pubkey: translateAddress(accounts.owner), isSigner: true, isWritable: true },
-        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-        { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
         { pubkey: translateAddress(PARCL_V3_EVENT_AUTHORITY), isSigner: false, isWritable: false },
         { pubkey: translateAddress(PARCL_V3_PROGRAM_ID), isSigner: false, isWritable: false },
       ],
-      data: encodeInstructionData("create_lp_account"),
+      data: encodeInstructionData("upgrade_lp_account", params, upgradeLpAccountParamsSerializer),
       programId: translateAddress(PARCL_V3_PROGRAM_ID),
     });
   }
@@ -74,35 +76,40 @@ export class ParclV3InstructionBuilder {
     });
   }
 
-  addLiquidity(accounts: AddLiquidityAccounts, params: AddLiquidityParams): TransactionInstruction {
-    return new TransactionInstruction({
-      keys: [
-        { pubkey: translateAddress(accounts.exchange), isSigner: false, isWritable: true },
-        { pubkey: translateAddress(accounts.lpAccount), isSigner: false, isWritable: true },
-        { pubkey: translateAddress(accounts.collateralVault), isSigner: false, isWritable: true },
-        {
-          pubkey: translateAddress(accounts.signerTokenAccount),
-          isSigner: false,
-          isWritable: true,
-        },
-        { pubkey: translateAddress(accounts.signer), isSigner: true, isWritable: true },
-        { pubkey: translateAddress(TOKEN_PROGRAM_ID), isSigner: false, isWritable: false },
-        { pubkey: translateAddress(PARCL_V3_EVENT_AUTHORITY), isSigner: false, isWritable: false },
-        { pubkey: translateAddress(PARCL_V3_PROGRAM_ID), isSigner: false, isWritable: false },
-      ],
-      data: encodeInstructionData("add_liquidity", params, addLiquidityParamsSerializer),
-      programId: translateAddress(PARCL_V3_PROGRAM_ID),
-    });
-  }
+  // LP POSITION //
 
-  removeLiquidity(
-    accounts: RemoveLiquidityAccounts,
-    params: RemoveLiquidityParams
+  addLiquidityV2(
+    accounts: AddLiquidityV2Accounts,
+    params: AddLiquidityV2Params
   ): TransactionInstruction {
     return new TransactionInstruction({
       keys: [
         { pubkey: translateAddress(accounts.exchange), isSigner: false, isWritable: true },
-        { pubkey: translateAddress(accounts.lpAccount), isSigner: false, isWritable: true },
+        { pubkey: translateAddress(accounts.lpPosition), isSigner: false, isWritable: true },
+        { pubkey: translateAddress(accounts.collateralVault), isSigner: false, isWritable: true },
+        {
+          pubkey: translateAddress(accounts.ownerTokenAccount),
+          isSigner: false,
+          isWritable: true,
+        },
+        { pubkey: translateAddress(accounts.owner), isSigner: true, isWritable: true },
+        { pubkey: translateAddress(TOKEN_PROGRAM_ID), isSigner: false, isWritable: false },
+        { pubkey: translateAddress(PARCL_V3_EVENT_AUTHORITY), isSigner: false, isWritable: false },
+        { pubkey: translateAddress(PARCL_V3_PROGRAM_ID), isSigner: false, isWritable: false },
+      ],
+      data: encodeInstructionData("add_liquidity_v2", params, addLiquidityV2ParamsSerializer),
+      programId: translateAddress(PARCL_V3_PROGRAM_ID),
+    });
+  }
+
+  removeLiquidityV2(
+    accounts: RemoveLiquidityV2Accounts,
+    params: RemoveLiquidityV2Params
+  ): TransactionInstruction {
+    return new TransactionInstruction({
+      keys: [
+        { pubkey: translateAddress(accounts.exchange), isSigner: false, isWritable: true },
+        { pubkey: translateAddress(accounts.lpPosition), isSigner: false, isWritable: true },
         { pubkey: translateAddress(accounts.settlementRequest), isSigner: false, isWritable: true },
         {
           pubkey: translateAddress(accounts.ownerTokenAccount),
@@ -115,28 +122,21 @@ export class ParclV3InstructionBuilder {
         { pubkey: translateAddress(PARCL_V3_EVENT_AUTHORITY), isSigner: false, isWritable: false },
         { pubkey: translateAddress(PARCL_V3_PROGRAM_ID), isSigner: false, isWritable: false },
       ],
-      data: encodeInstructionData("remove_liquidity", params, removeLiquidityParamsSerializer),
+      data: encodeInstructionData("remove_liquidity_v2", params, removeLiquidityV2ParamsSerializer),
       programId: translateAddress(PARCL_V3_PROGRAM_ID),
     });
   }
 
-  setLpAccountDelegate(
-    accounts: SetLpAccountDelegateAccounts,
-    params: SetLpAccountDelegateParams
-  ): TransactionInstruction {
+  closeLpPosition(accounts: CloseLpPositionAccounts): TransactionInstruction {
     return new TransactionInstruction({
       keys: [
         { pubkey: translateAddress(accounts.exchange), isSigner: false, isWritable: false },
-        { pubkey: translateAddress(accounts.lpAccount), isSigner: false, isWritable: true },
+        { pubkey: translateAddress(accounts.lpPosition), isSigner: false, isWritable: true },
         { pubkey: translateAddress(accounts.owner), isSigner: true, isWritable: true },
         { pubkey: translateAddress(PARCL_V3_EVENT_AUTHORITY), isSigner: false, isWritable: false },
         { pubkey: translateAddress(PARCL_V3_PROGRAM_ID), isSigner: false, isWritable: false },
       ],
-      data: encodeInstructionData(
-        "set_lp_account_delegate",
-        params,
-        setLpAccountDelegateParamsSerializer
-      ),
+      data: encodeInstructionData("close_lp_position"),
       programId: translateAddress(PARCL_V3_PROGRAM_ID),
     });
   }
