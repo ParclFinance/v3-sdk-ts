@@ -116,6 +116,6 @@ export class MarginsWrapper {
   }
 
   canLiquidate(): boolean {
-    return this.totalRequiredMargin() > this.margins.availableMargin;
+    return this.totalRequiredMargin().gt(this.margins.availableMargin);
   }
 }

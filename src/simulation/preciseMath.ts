@@ -36,6 +36,14 @@ export class PreciseIntWrapper {
     return new PreciseIntWrapper(this.val.mul(rhs.val).div(PRECISE_NUM_ONE));
   }
 
+  gt(rhs: PreciseIntWrapper): boolean {
+    return this.val.gt(rhs.val);
+  }
+
+  lt(rhs: PreciseIntWrapper): boolean {
+    return this.val.lt(rhs.val);
+  }
+
   div(rhs: PreciseIntWrapper): PreciseIntWrapper {
     return new PreciseIntWrapper(this.val.mul(PRECISE_NUM_ONE).div(rhs.val));
   }
