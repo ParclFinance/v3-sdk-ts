@@ -1,4 +1,4 @@
-import { Commitment } from "@solana/web3.js";
+import { Commitment, Connection, Keypair } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import {
   Umi,
@@ -36,7 +36,15 @@ import {
   MARGIN_ACCOUNT_DISCRIMINATOR,
   MARKET_DISCRIMINATOR,
   SETTLEMENT_REQUEST_DISCRIMINATOR,
+  PARCL_PYTH_PROGRAM_ID,
 } from "./constants";
+import {
+  DEFAULT_RECEIVER_PROGRAM_ID,
+  pythSolanaReceiverIdl,
+  PythSolanaReceiverProgram,
+} from "@pythnetwork/pyth-solana-receiver";
+import { PriceUpdateAccount } from "@pythnetwork/pyth-solana-receiver/lib/PythSolanaReceiver";
+import { Program, AnchorProvider, Wallet } from "@coral-xyz/anchor";
 
 export type ParclV3AccountFetcherConfig = {
   rpcUrl: string;
@@ -45,9 +53,26 @@ export type ParclV3AccountFetcherConfig = {
 
 export class ParclV3AccountFetcher {
   private umi: Umi;
+  private priceUpdateV2DecodeFunc: (name: string, data: Buffer) => PriceUpdateAccount;
 
   constructor(config: ParclV3AccountFetcherConfig) {
     this.umi = createUmi(config.rpcUrl, { commitment: config.commitment });
+    const provider = new AnchorProvider(
+      new Connection(config.rpcUrl, config.commitment),
+      new Wallet(new Keypair()),
+      {
+        commitment: config.commitment,
+      }
+    );
+    const receiver = new Program<PythSolanaReceiverProgram>(
+      pythSolanaReceiverIdl as PythSolanaReceiverProgram,
+      DEFAULT_RECEIVER_PROGRAM_ID,
+      provider
+    );
+    this.priceUpdateV2DecodeFunc =
+      receiver.account.priceUpdateV2.coder.accounts.decodeUnchecked.bind(
+        receiver.account.priceUpdateV2.coder.accounts
+      );
   }
 
   // SINGLE ACCOUNT //
@@ -92,9 +117,15 @@ export class ParclV3AccountFetcher {
       : deserializeAccount(rawAccount, settlementRequestSerializer);
   }
 
-  async getPythPriceFeed(address: Address): Promise<PriceData | undefined> {
+  async getPythPriceFeed(address: Address): Promise<PriceData | PriceUpdateAccount | undefined> {
     const rawAccount = await this.umi.rpc.getAccount(publicKey(address));
-    return !rawAccount.exists ? undefined : parsePriceData(Buffer.from(rawAccount.data));
+    const receiverProgramId = publicKey(DEFAULT_RECEIVER_PROGRAM_ID);
+    return !rawAccount.exists ||
+      (rawAccount.owner != PARCL_PYTH_PROGRAM_ID && rawAccount.owner != receiverProgramId)
+      ? undefined
+      : rawAccount.owner == PARCL_PYTH_PROGRAM_ID
+      ? parsePriceData(Buffer.from(rawAccount.data))
+      : this.priceUpdateV2DecodeFunc("priceUpdateV2", Buffer.from(rawAccount.data));
   }
 
   // MULTIPLE ACCOUNTS //
@@ -175,12 +206,20 @@ export class ParclV3AccountFetcher {
     );
   }
 
-  async getPythPriceFeeds(addresses: Address[]): Promise<(PriceData | undefined)[]> {
+  async getPythPriceFeeds(
+    addresses: Address[]
+  ): Promise<(PriceData | PriceUpdateAccount | undefined)[]> {
     const rawAccounts = await this.umi.rpc.getAccounts(
       addresses.map((address) => publicKey(address))
     );
+    const receiverProgramId = publicKey(DEFAULT_RECEIVER_PROGRAM_ID);
     return rawAccounts.map((rawAccount) =>
-      !rawAccount.exists ? undefined : parsePriceData(Buffer.from(rawAccount.data))
+      !rawAccount.exists ||
+      (rawAccount.owner != PARCL_PYTH_PROGRAM_ID && rawAccount.owner != receiverProgramId)
+        ? undefined
+        : rawAccount.owner == PARCL_PYTH_PROGRAM_ID
+        ? parsePriceData(Buffer.from(rawAccount.data))
+        : this.priceUpdateV2DecodeFunc("priceUpdateV2", Buffer.from(rawAccount.data))
     );
   }
 
