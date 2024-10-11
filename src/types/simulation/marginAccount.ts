@@ -1,9 +1,12 @@
-import { PriceData } from "@pythnetwork/client";
+import { PriceData as PythPriceData } from "@pythnetwork/client";
+import { PriceUpdateAccount as PythV2PriceUpdateAccount } from "@pythnetwork/pyth-solana-receiver/lib/PythSolanaReceiver";
 import { MarketWrapper, PreciseIntWrapper } from "../../simulation";
 
 export type MarketMap = { [key: number]: MarketWrapper };
 
-export type PriceFeedMap = { [key: string]: PriceData };
+export type PriceFeedMap = { [key: string]: PythPriceFeed };
+
+export type PythPriceFeed = PythPriceData | PythV2PriceUpdateAccount;
 
 export type Margins = {
   availableMargin: PreciseIntWrapper;

@@ -11,6 +11,7 @@ import {
   parseSize,
   getExchangePda,
 } from "../src";
+import Decimal from "decimal.js";
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -33,7 +34,7 @@ dotenv.config();
   // deposit $5.1 of margin collateral
   // NOTE: flip collateral expo sign
   const margin = parseCollateralAmount(5.1, -exchange.collateralExpo);
-  // trading market with id 4 
+  // trading market with id 4
   const marketIdToTrade = 4;
   const marketIds: number[] = [];
   // if you already have margin account:
@@ -42,13 +43,17 @@ dotenv.config();
   if (!marketIds.includes(marketIdToTrade)) {
     marketIds.push(marketIdToTrade);
   }
-  const marketAddresses = marketIds.map(marketId => getMarketPda(exchangeAddress, marketId)[0]);
-  const marketAccounts = (await sdk.accountFetcher.getMarkets(marketAddresses)).filter((market) => market != undefined);
+  const marketAddresses = marketIds.map((marketId) => getMarketPda(exchangeAddress, marketId)[0]);
+  const marketAccounts = (await sdk.accountFetcher.getMarkets(marketAddresses)).filter(
+    (market) => market != undefined
+  );
   if (marketAccounts.length !== marketAddresses.length) {
     throw new Error("Failed to fetch all provided markets");
   }
-  const priceFeedAddresses = marketAccounts.map(market => market.account.priceFeed);
-  const priceFeedAccounts = (await sdk.accountFetcher.getPythPriceFeeds(priceFeedAddresses)).filter((market) => market != undefined);
+  const priceFeedAddresses = marketAccounts.map((market) => market!.account.priceFeed);
+  const priceFeedAccounts = (await sdk.accountFetcher.getPythPriceFeeds(priceFeedAddresses)).filter(
+    (market) => market != undefined
+  );
   if (priceFeedAccounts.length !== priceFeedAddresses.length) {
     throw new Error("Failed to fetch all provided price feeds");
   }
@@ -56,10 +61,15 @@ dotenv.config();
   const sizeDelta = parseSize(0.1);
   // trading market with id 4, so using price feed at index 0 corresponding to mkt with id 4.
   // make sure you select the correct price feed for acceptable price calc
-  const priceFeed = priceFeedAccounts[0];
+  const priceFeed = priceFeedAccounts[0]!;
+  const isPythV2 = "priceMessage" in priceFeed;
+  const indexPrice = isPythV2
+    ? new Decimal(priceFeed.priceMessage.price.toString())
+        .div(10 ** -priceFeed.priceMessage.exponent)
+        .toNumber()
+    : priceFeed.aggregate.price; // formatted already
   // Naively accepting up to 10% price impact for this long trade
-  // NOTE: pyth sdk gives priceFeed.aggregate.price formatted. So it's 100 not 100e8)
-  const acceptablePrice = parsePrice(1.1 * priceFeed.aggregate.price);
+  const acceptablePrice = parsePrice(1.1 * indexPrice);
   const markets = marketAddresses;
   const priceFeeds = priceFeedAddresses;
   const connection = new Connection(rpcUrl);

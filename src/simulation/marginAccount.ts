@@ -47,7 +47,14 @@ export class MarginAccountWrapper {
     for (const position of this.positions()) {
       const market = markets[position.marketId()];
       const priceFeed = priceFeeds[market.priceFeed().toBase58()];
-      const indexPrice = PreciseIntWrapper.fromDecimal(priceFeed.aggregate.price, 0);
+      const isPythV2 = "priceMessage" in priceFeed;
+      const priceInfo = isPythV2
+        ? {
+            price: BigInt(priceFeed.priceMessage.price.toString()),
+            expo: priceFeed.priceMessage.exponent,
+          }
+        : { price: BigInt(priceFeed.price!.toString()), expo: priceFeed.exponent };
+      const indexPrice = PreciseIntWrapper.fromDecimal(priceInfo.price, priceInfo.expo);
       const {
         initialMargin: positionInitialMargin,
         maintenanceMargin: positionMaintenanceMargin,
