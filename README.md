@@ -28,7 +28,7 @@ yarn add @parcl-oss/v3-sdk
 
 ## Usage
 
-Examples folder shows account fetching and modify position example. Please reach out in the discord dev channel with any usage questions or examples requests.
+The [examples folder](/examples/) has code to fetch account details and to modify positions. Please reach out in the discord dev channel with any usage questions or examples requests.
 
 ## Documentation
 
