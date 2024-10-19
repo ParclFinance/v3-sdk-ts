@@ -1,6 +1,6 @@
 {
   "name": "@parcl-oss/v3-sdk",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "license": "MIT",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
