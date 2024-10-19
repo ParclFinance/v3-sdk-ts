@@ -53,7 +53,7 @@ export class MarginAccountWrapper {
             price: BigInt(priceFeed.priceMessage.price.toString()),
             expo: priceFeed.priceMessage.exponent,
           }
-        : { price: BigInt(priceFeed.price!.toString()), expo: priceFeed.exponent };
+        : { price: priceFeed.aggregate.price, expo: 0 };
       const indexPrice = PreciseIntWrapper.fromDecimal(priceInfo.price, priceInfo.expo);
       const {
         initialMargin: positionInitialMargin,
